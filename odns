@@ -1,0 +1,146 @@
+#!/usr/bin/env bash
+
+wan_ip() {
+    dig +short myip.opendns.com @resolver1.opendns.com
+}
+
+# all A records for a domain
+get_records() {
+    [ "$DIGITAL_OCEAN_API" ] || return
+    [ "$DOMAIN" ] || return
+    curl -s -X GET \
+    -H "Content-Type: application/json" \
+    -H "Authorization: Bearer $DIGITAL_OCEAN_API" \
+    "https://api.digitalocean.com/v2/domains/$DOMAIN/records" \
+    | grep -o '{"id[^}]*}' | grep '"type":"A",'
+}
+
+# A record(s) for subdomain
+get_record() {
+    [ "$DIGITAL_OCEAN_API" ] || return
+    [ "$DOMAIN" ] || return
+    [ "$SUB" ] || return
+    get_records | grep '"type":"A",' | grep '"name":"'$SUB'"' \
+    | sed 's/^.*"id":\([^,]*\).*"data":"\([^"]*\)".*$/\1 \2/'
+}
+
+# create A record for subdomain
+create_record() {
+    #{domain_record:{id,type,name,data,priority,port,weight}}
+    [ "$DIGITAL_OCEAN_API" ] || return
+    [ "$DOMAIN" ] || return
+    [ "$SUB" ] || return
+    curl -s -X POST \
+    -H "Content-Type: application/json" \
+    -H "Authorization: Bearer $DIGITAL_OCEAN_API" \
+    -d '{"type":"A","name":"'$SUB'","data":"'${IP:-$(wan_ip)}'"}' \
+    "https://api.digitalocean.com/v2/domains/$DOMAIN/records" \
+    | sed 's/^.*"id":\([^,]*\).*$/\1/'
+}
+
+# by ID
+update_record() {
+    #{domain_record:{id,type,name,data,priority,port,weight}}
+    [ "$DIGITAL_OCEAN_API" ] || return
+    [ "$DOMAIN" ] || return
+    [ "$ID" ] || return
+    curl -s -X PUT \
+    -H "Content-Type: application/json" \
+    -H "Authorization: Bearer $DIGITAL_OCEAN_API" \
+    -d '{"data":"'${IP:-$(wan_ip)}'"}' \
+    "https://api.digitalocean.com/v2/domains/$DOMAIN/records/$ID"
+}
+
+# by ID
+delete_record() {
+    [ "$DIGITAL_OCEAN_API" ] || return
+    [ "$DOMAIN" ] || return
+    [ "$ID" ] || return
+    # success is a 204 with no body
+    curl -s -X DELETE \
+    -H "Content-Type: application/json" \
+    -H "Authorization: Bearer $DIGITAL_OCEAN_API" \
+    "https://api.digitalocean.com/v2/domains/$DOMAIN/records/$ID"
+}
+
+# curl command suitable for copy/pasting
+echo_update_command() {
+    [ "$DIGITAL_OCEAN_API" ] || return
+    [ "$DOMAIN" ] || return
+    [ "$ID" ] || return
+    echo curl -s -X PUT \
+    -H "'Content-Type: application/json'" \
+    -H "'Authorization: Bearer $DIGITAL_OCEAN_API'" \
+    -d "'{\"data\":\"'\$(dig +short myip.opendns.com @resolver1.opendns.com)'\"}'" \
+    "https://api.digitalocean.com/v2/domains/$DOMAIN/records/$ID"
+}
+
+# put in ~/Library/LaunchAgents
+echo_plist() {
+    [ "$DIGITAL_OCEAN_API" ] || return
+    [ "$DOMAIN" ] || return
+    [ "$SUB" ] || return
+cat <<EOF
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple Computer//DTD PLIST 1.0//EN"
+          "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <key>Label</key>
+    <string>horse.dev.location_change</string>
+    <key>EnvironmentVariables</key>
+    <dict>
+        <key>DIGITAL_OCEAN_API</key>
+        <string>$DIGITAL_OCEAN_API</string>
+    </dict>
+    <key>ProgramArguments</key>
+    <array>
+        <string>$PWD/odns</string>
+        <string>$DOMAIN</string>
+        <string>$SUB</string>
+        <string>ddns</string>
+    </array>
+    <key>WatchPaths</key>
+    <array>
+        <string>/Library/Preferences/SystemConfiguration</string>
+    </array>
+</dict>
+</plist>
+EOF
+}
+
+# only update if necessary
+dynamic_dns() {
+    [ "$DIGITAL_OCEAN_API" ] || return
+    [ "$DOMAIN" ] || return
+    [ "$SUB" ] || return
+    record=$(get_record)
+    OLD_IP=${record#* }
+    ID=${record% *}
+    if [ "$ID" ]; then
+        IP=$(wan_ip)
+        [ "$OLD_IP" = "$IP" ] || update_record
+    else
+        create_record
+    fi
+}
+
+if [ "$3" = "ddns" ]; then
+    DOMAIN=$1 SUB=$2 dynamic_dns
+elif [ "$3" = "create" ]; then
+    DOMAIN=$1 SUB=$2 create_record
+elif [ "$3" = "update" ]; then
+    DOMAIN=$1 ID=$2 update_record
+elif [ "$3" = "delete" ]; then
+    DOMAIN=$1 ID=$2 delete_record
+elif [ "$3" = "plist" ]; then
+    DOMAIN=$1 SUB=$2 echo_plist
+elif [ "$3" = "curl" ]; then
+    DOMAIN=$1 ID=$2 echo_update_command
+elif [ "$2" ]; then
+    DOMAIN=$1 SUB=$2 get_record
+elif [ "$1" ]; then
+    DOMAIN=$1 get_records
+else
+   echo "$(basename $0) DOMAIN [SUB [ddns|create|plist] | ID update | ID delete | ID curl]"
+fi
