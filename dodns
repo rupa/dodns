@@ -65,18 +65,6 @@ delete_record() {
     "https://api.digitalocean.com/v2/domains/$DOMAIN/records/$ID"
 }
 
-# curl command suitable for copy/pasting
-echo_update_command() {
-    [ "$DIGITAL_OCEAN_API" ] || return
-    [ "$DOMAIN" ] || return
-    [ "$ID" ] || return
-    echo curl -s -X PUT \
-    -H "'Content-Type: application/json'" \
-    -H "'Authorization: Bearer $DIGITAL_OCEAN_API'" \
-    -d "'{\"data\":\"'\$(dig +short myip.opendns.com @resolver1.opendns.com)'\"}'" \
-    "https://api.digitalocean.com/v2/domains/$DOMAIN/records/$ID"
-}
-
 # put in ~/Library/LaunchAgents
 echo_plist() {
     [ "$DIGITAL_OCEAN_API" ] || return
@@ -111,6 +99,28 @@ cat <<EOF
 EOF
 }
 
+# put in /etc/NetworkManager/dispatcher.d
+echo_nm_script() {
+    [ "$DIGITAL_OCEAN_API" ] || return
+    [ "$DOMAIN" ] || return
+    [ "$SUB" ] || return
+    echo "#!/bin/bash\n"
+    echo "DIGITAL_OCEAN_API=$DIGITAL_OCEAN_API"
+    echo "[ \"\$2\" = \"up\" ] && $PWD/dodns $DOMAIN $SUB ddns"
+}
+
+# curl command suitable for copy/pasting
+echo_update_command() {
+    [ "$DIGITAL_OCEAN_API" ] || return
+    [ "$DOMAIN" ] || return
+    [ "$ID" ] || return
+    echo curl -s -X PUT \
+    -H "'Content-Type: application/json'" \
+    -H "'Authorization: Bearer $DIGITAL_OCEAN_API'" \
+    -d "'{\"data\":\"'\$(dig +short myip.opendns.com @resolver1.opendns.com)'\"}'" \
+    "https://api.digitalocean.com/v2/domains/$DOMAIN/records/$ID"
+}
+
 # only update if necessary
 dynamic_dns() {
     [ "$DIGITAL_OCEAN_API" ] || return
@@ -137,6 +147,8 @@ elif [ "$3" = "delete" ]; then
     DOMAIN=$1 ID=$2 delete_record
 elif [ "$3" = "plist" ]; then
     DOMAIN=$1 SUB=$2 echo_plist
+elif [ "$3" = "nm" ]; then
+    DOMAIN=$1 SUB=$2 echo_nm_script
 elif [ "$3" = "curl" ]; then
     DOMAIN=$1 ID=$2 echo_update_command
 elif [ "$2" ]; then
