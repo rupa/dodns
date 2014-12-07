@@ -1,0 +1,16 @@
+Dynamic DNS with Digital Ocean
+
+Have a domain set up using Digital Ocean nameservers.
+Have an API key exported as DIGITAL_OCEAN_API.
+
+OSX:
+
+    * Use launchd to trigger update when network location changes:
+
+        /path/to/odns > ~/Library/LaunchAgents/location_change.plist
+
+LINUX:
+
+    * Use network manager to update when network location changes
+    * Use cron to check/update on a fixed schedule
+
