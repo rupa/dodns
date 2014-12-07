@@ -8,6 +8,7 @@ OSX:
     * Use launchd to trigger update when network location changes:
 
         /path/to/dodns DOMAIN SUBDOMAIN plist > ~/Library/LaunchAgents/location_change.plist
+        launchctl load ~/Library/LaunchAgents/location_change.plist # or logout/login
 
 LINUX:
 
