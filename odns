@@ -17,7 +17,7 @@ get_records() {
     | grep -o '{"id[^}]*}' | grep '"type":"A",'
 }
 
-# A record(s) for subdomain
+# A record(s) for subdomain (ID and value)
 get_record() {
     [ "$DIGITAL_OCEAN_API" ] || return
     [ "$DOMAIN" ] || return
