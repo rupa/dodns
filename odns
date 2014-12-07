@@ -1,5 +1,7 @@
 #!/usr/bin/env bash
 
+# Dynamic DNS with Digital Ocean
+
 wan_ip() {
     dig +short myip.opendns.com @resolver1.opendns.com
 }
