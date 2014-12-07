@@ -144,5 +144,6 @@ elif [ "$2" ]; then
 elif [ "$1" ]; then
     DOMAIN=$1 get_records
 else
-   echo "$(basename $0) DOMAIN [SUB [ddns|create|plist] | ID update | ID delete | ID curl]"
+   echo -n "$(basename $0)"
+   echo " DOMAIN [SUB [ddns|create|plist] | ID update | ID delete | ID curl]"
 fi
