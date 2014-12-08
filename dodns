@@ -32,10 +32,12 @@ create_record() {
     [ "$DIGITAL_OCEAN_API" ] || return
     [ "$DOMAIN" ] || return
     [ "$SUB" ] || return
+    IP=${IP:-$(wan_ip)}
+    [ "$IP" ] || return
     curl -s --connect-timeout 5 -X POST \
     -H "Content-Type: application/json" \
     -H "Authorization: Bearer $DIGITAL_OCEAN_API" \
-    -d '{"type":"A","name":"'$SUB'","data":"'${IP:-$(wan_ip)}'"}' \
+    -d '{"type":"A","name":"'$SUB'","data":"'$IP'"}' \
     "https://api.digitalocean.com/v2/domains/$DOMAIN/records" \
     | sed 's/^.*"id":\([^,]*\).*$/\1/'
 }
@@ -46,10 +48,12 @@ update_record() {
     [ "$DIGITAL_OCEAN_API" ] || return
     [ "$DOMAIN" ] || return
     [ "$ID" ] || return
+    IP=${IP:-$(wan_ip)}
+    [ "$IP" ] || return
     curl -s --connect-timeout 5 -X PUT \
     -H "Content-Type: application/json" \
     -H "Authorization: Bearer $DIGITAL_OCEAN_API" \
-    -d '{"data":"'${IP:-$(wan_ip)}'"}' \
+    -d '{"data":"'$IP'"}' \
     "https://api.digitalocean.com/v2/domains/$DOMAIN/records/$ID"
 }
 
