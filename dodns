@@ -27,7 +27,7 @@ get_record() {
     [ "$DIGITAL_OCEAN_API" ] || return
     [ "$DOMAIN" ] || return
     [ "$SUB" ] || return
-    get_records | grep '"type":"A",' | grep '"name":"'$SUB'"' \
+    get_records | grep '"name":"'$SUB'"' \
     | sed 's/^.*"id":\([^,]*\).*"data":"\([^"]*\)".*$/\1 \2/'
 }
 
@@ -103,6 +103,12 @@ cat <<EOF
     <array>
         <string>/Library/Preferences/SystemConfiguration</string>
     </array>
+    <key>StandardOutPath</key>
+    <string>/var/log/horse.dev.location_change.log</string>
+    <key>StandardErrorPath</key>
+    <string>/var/log/horse.dev.location_change.log</string>
+    <key>Debug</key>
+    <true/>
 </dict>
 </plist>
 EOF
@@ -144,6 +150,8 @@ dynamic_dns() {
     else
         create_record
     fi
+    # so launchd doesn't think we crashed
+    sleep 10
 }
 
 if [ "$3" = "ddns" ]; then
