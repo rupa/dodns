@@ -15,6 +15,7 @@ LINUX:
     * Use network manager to update when network location changes:
 
         /path/to/dodns DOMAIN SUBDOMAIN nm > /etc/NetworkManager/dispatcher.d/99ddns
+        chmod +x /etc/NetworkManager/dispatcher.d/99ddns
 
     * Use cron to check/update on a fixed schedule (lame):
 
