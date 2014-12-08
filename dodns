@@ -24,7 +24,7 @@ pretty_records() {
     get_records | sed 's/^.*"id":\([^,]*\).*"name":"\([^"]*\)".*"data":"\([^"]*\)".*$/\1 \2 \3/' | column -t
 }
 
-# A record(s) for subdomain (ID and value)
+# A record(s) for name (ID and value)
 get_record() {
     [ "$DIGITAL_OCEAN_API" ] || return
     [ "$DOMAIN" ] || return
@@ -33,7 +33,7 @@ get_record() {
     | sed 's/^.*"id":\([^,]*\).*"data":"\([^"]*\)".*$/\1 \2/'
 }
 
-# create A record for subdomain
+# create A record, by name
 create_record() {
     #{domain_record:{id,type,name,data,priority,port,weight}}
     [ "$DIGITAL_OCEAN_API" ] || return
