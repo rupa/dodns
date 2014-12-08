@@ -10,7 +10,7 @@ wan_ip() {
 get_records() {
     [ "$DIGITAL_OCEAN_API" ] || return
     [ "$DOMAIN" ] || return
-    curl -s -X GET \
+    curl -s --connect-timeout 5 -X GET \
     -H "Content-Type: application/json" \
     -H "Authorization: Bearer $DIGITAL_OCEAN_API" \
     "https://api.digitalocean.com/v2/domains/$DOMAIN/records" \
@@ -32,7 +32,7 @@ create_record() {
     [ "$DIGITAL_OCEAN_API" ] || return
     [ "$DOMAIN" ] || return
     [ "$SUB" ] || return
-    curl -s -X POST \
+    curl -s --connect-timeout 5 -X POST \
     -H "Content-Type: application/json" \
     -H "Authorization: Bearer $DIGITAL_OCEAN_API" \
     -d '{"type":"A","name":"'$SUB'","data":"'${IP:-$(wan_ip)}'"}' \
@@ -46,7 +46,7 @@ update_record() {
     [ "$DIGITAL_OCEAN_API" ] || return
     [ "$DOMAIN" ] || return
     [ "$ID" ] || return
-    curl -s -X PUT \
+    curl -s --connect-timeout 5 -X PUT \
     -H "Content-Type: application/json" \
     -H "Authorization: Bearer $DIGITAL_OCEAN_API" \
     -d '{"data":"'${IP:-$(wan_ip)}'"}' \
@@ -59,7 +59,7 @@ delete_record() {
     [ "$DOMAIN" ] || return
     [ "$ID" ] || return
     # success is a 204 with no body
-    curl -s -X DELETE \
+    curl -s --connect-timeout 5 -X DELETE \
     -H "Content-Type: application/json" \
     -H "Authorization: Bearer $DIGITAL_OCEAN_API" \
     "https://api.digitalocean.com/v2/domains/$DOMAIN/records/$ID"
@@ -114,7 +114,7 @@ echo_update_command() {
     [ "$DIGITAL_OCEAN_API" ] || return
     [ "$DOMAIN" ] || return
     [ "$ID" ] || return
-    echo curl -s -X PUT \
+    echo curl -s --connect-timeout 5 -X PUT \
     -H "'Content-Type: application/json'" \
     -H "'Authorization: Bearer $DIGITAL_OCEAN_API'" \
     -d "'{\"data\":\"'\$(dig +short myip.opendns.com @resolver1.opendns.com)'\"}'" \
