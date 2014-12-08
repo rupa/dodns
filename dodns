@@ -139,7 +139,7 @@ dynamic_dns() {
     OLD_IP=${record#* }
     ID=${record% *}
     if [ "$ID" ]; then
-        IP=$(wan_ip)
+        IP=${IP:-$(wan_ip)}
         [ "$OLD_IP" = "$IP" ] || update_record
     else
         create_record
