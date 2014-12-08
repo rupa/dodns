@@ -28,8 +28,8 @@ pretty_records() {
 get_record() {
     [ "$DIGITAL_OCEAN_API" ] || return
     [ "$DOMAIN" ] || return
-    [ "$SUB" ] || return
-    get_records | grep '"name":"'$SUB'"' \
+    [ "$NAME" ] || return
+    get_records | grep '"name":"'$NAME'"' \
     | sed 's/^.*"id":\([^,]*\).*"data":"\([^"]*\)".*$/\1 \2/'
 }
 
@@ -38,13 +38,13 @@ create_record() {
     #{domain_record:{id,type,name,data,priority,port,weight}}
     [ "$DIGITAL_OCEAN_API" ] || return
     [ "$DOMAIN" ] || return
-    [ "$SUB" ] || return
+    [ "$NAME" ] || return
     IP=${IP:-$(wan_ip)}
     [ "$IP" ] || return
     curl -s --connect-timeout $TIMEOUT -X POST \
     -H "Content-Type: application/json" \
     -H "Authorization: Bearer $DIGITAL_OCEAN_API" \
-    -d '{"type":"A","name":"'$SUB'","data":"'$IP'"}' \
+    -d '{"type":"A","name":"'$NAME'","data":"'$IP'"}' \
     "https://api.digitalocean.com/v2/domains/$DOMAIN/records" \
     | sed 's/^.*"id":\([^,]*\).*$/\1/'
 }
@@ -80,7 +80,7 @@ delete_record() {
 echo_plist() {
     [ "$DIGITAL_OCEAN_API" ] || return
     [ "$DOMAIN" ] || return
-    [ "$SUB" ] || return
+    [ "$NAME" ] || return
 cat <<EOF
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE plist PUBLIC "-//Apple Computer//DTD PLIST 1.0//EN"
@@ -98,7 +98,7 @@ cat <<EOF
     <array>
         <string>$PWD/odns</string>
         <string>$DOMAIN</string>
-        <string>$SUB</string>
+        <string>$NAME</string>
         <string>ddns</string>
     </array>
     <key>WatchPaths</key>
@@ -114,11 +114,11 @@ EOF
 echo_nm_script() {
     [ "$DIGITAL_OCEAN_API" ] || return
     [ "$DOMAIN" ] || return
-    [ "$SUB" ] || return
+    [ "$NAME" ] || return
     echo "#!/bin/bash"
     echo
     echo "DIGITAL_OCEAN_API=$DIGITAL_OCEAN_API"
-    echo "[ \"\$2\" = \"up\" ] && $PWD/dodns $DOMAIN $SUB ddns"
+    echo "[ \"\$2\" = \"up\" ] && $PWD/dodns $DOMAIN $NAME ddns"
 }
 
 # curl command suitable for copy/pasting
@@ -137,7 +137,7 @@ echo_update_command() {
 dynamic_dns() {
     [ "$DIGITAL_OCEAN_API" ] || return
     [ "$DOMAIN" ] || return
-    [ "$SUB" ] || return
+    [ "$NAME" ] || return
     record=$(get_record)
     OLD_IP=${record#* }
     ID=${record% *}
@@ -150,24 +150,24 @@ dynamic_dns() {
 }
 
 if [ "$3" = "ddns" ]; then
-    DOMAIN=$1 SUB=$2 dynamic_dns
+    DOMAIN=$1 NAME=$2 dynamic_dns
 elif [ "$3" = "create" ]; then
-    DOMAIN=$1 SUB=$2 create_record
+    DOMAIN=$1 NAME=$2 create_record
 elif [ "$3" = "update" ]; then
     DOMAIN=$1 ID=$2 update_record
 elif [ "$3" = "delete" ]; then
     DOMAIN=$1 ID=$2 delete_record
 elif [ "$3" = "plist" ]; then
-    DOMAIN=$1 SUB=$2 echo_plist
+    DOMAIN=$1 NAME=$2 echo_plist
 elif [ "$3" = "nm" ]; then
-    DOMAIN=$1 SUB=$2 echo_nm_script
+    DOMAIN=$1 NAME=$2 echo_nm_script
 elif [ "$3" = "curl" ]; then
     DOMAIN=$1 ID=$2 echo_update_command
 elif [ "$2" ]; then
-    DOMAIN=$1 SUB=$2 get_record
+    DOMAIN=$1 NAME=$2 get_record
 elif [ "$1" ]; then
     DOMAIN=$1 pretty_records
 else
    echo -n "$(basename $0)"
-   echo " DOMAIN [SUB [ddns|create|plist|nm] | ID update | ID delete | ID curl]"
+   echo " DOMAIN [NAME [ddns|create|plist|nm] | ID update | ID delete | ID curl]"
 fi

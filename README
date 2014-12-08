@@ -7,16 +7,16 @@ OSX:
 
     * Use launchd to trigger update when network location changes:
 
-        /path/to/dodns DOMAIN SUBDOMAIN plist > ~/Library/LaunchAgents/location_change.plist
+        /path/to/dodns DOMAIN NAME plist > ~/Library/LaunchAgents/location_change.plist
         launchctl load ~/Library/LaunchAgents/location_change.plist # or logout/login
 
 LINUX:
 
     * Use network manager to update when network location changes:
 
-        /path/to/dodns DOMAIN SUBDOMAIN nm > /etc/NetworkManager/dispatcher.d/99ddns
+        /path/to/dodns DOMAIN NAME nm > /etc/NetworkManager/dispatcher.d/99ddns
         chmod +x /etc/NetworkManager/dispatcher.d/99ddns
 
     * Use cron to check/update on a fixed schedule (lame):
 
-        */15 * * * * /path/to/dodns DOMAIN SUBDOMAIN ddns
+        */15 * * * * /path/to/dodns DOMAIN NAME ddns
