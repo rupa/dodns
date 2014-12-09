@@ -115,10 +115,10 @@ echo_nm_script() {
     [ "$DIGITAL_OCEAN_API" ] || return
     [ "$DOMAIN" ] || return
     [ "$NAME" ] || return
-    echo "#!/bin/bash"
+    echo "#!/usr/bin/env bash"
     echo
-    echo "DIGITAL_OCEAN_API=$DIGITAL_OCEAN_API"
-    echo "[ \"\$2\" = \"up\" ] && $PWD/dodns $DOMAIN $NAME ddns"
+    echo "export DIGITAL_OCEAN_API=$DIGITAL_OCEAN_API"
+    echo "[ \"\$2\" = \"up\" ] && $PWD/dodns $DOMAIN $NAME ddns &"
 }
 
 # curl command suitable for copy/pasting
