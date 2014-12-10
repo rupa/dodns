@@ -118,7 +118,7 @@ echo_nm_script() {
     echo "#!/usr/bin/env bash"
     echo
     echo "export DIGITAL_OCEAN_API=$DIGITAL_OCEAN_API"
-    echo "[ \"\$2\" = \"up\" ] && $PWD/dodns $DOMAIN $NAME ddns &"
+    echo "[ \"\$2\" = \"up\" ] && nohup $PWD/dodns $DOMAIN $NAME ddns &"
 }
 
 # curl command suitable for copy/pasting
