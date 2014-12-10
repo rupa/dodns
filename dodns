@@ -96,7 +96,7 @@ cat <<EOF
     </dict>
     <key>ProgramArguments</key>
     <array>
-        <string>$PWD/odns</string>
+        <string>$PWD/dodns</string>
         <string>$DOMAIN</string>
         <string>$NAME</string>
         <string>ddns</string>
